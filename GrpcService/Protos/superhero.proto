@@ -4,17 +4,14 @@ option csharp_namespace = "GrpcService";
 
 package superhero;
 
-// The greeting service definition.
 service Superhero {
-  // Sends a greeting
   rpc GetSuperhero (SuperheroRequest) returns (SuperheroResponse);
 }
 
-// The request message containing the user's name.
 message SuperheroRequest {
+  optional int32 index = 1;
 }
 
-// The response message containing the greetings.
 message SuperheroResponse {
   string name = 1;
   string alias = 2;
