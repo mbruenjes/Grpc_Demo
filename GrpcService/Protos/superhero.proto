@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcService";
+
+package superhero;
+
+// The greeting service definition.
+service Superhero {
+  // Sends a greeting
+  rpc GetSuperhero (SuperheroRequest) returns (SuperheroResponse);
+}
+
+// The request message containing the user's name.
+message SuperheroRequest {
+}
+
+// The response message containing the greetings.
+message SuperheroResponse {
+  string name = 1;
+  string alias = 2;
+  float height = 3;
+  float weight = 4;
+  string universe = 5;
+}
