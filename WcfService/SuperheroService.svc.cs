@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.Text;
+using Common;
 
 namespace WcfService
 {
@@ -12,6 +13,12 @@ namespace WcfService
   // NOTE: In order to launch WCF Test Client for testing this service, please select Service1.svc or Service1.svc.cs at the Solution Explorer and start debugging.
   public class SuperheroService : ISuperheroService
   {
+    private readonly SuperheroRepository _repository;
+
+    public SuperheroService()
+    {
+      _repository = new SuperheroRepository();
+    }
     public string GetData(int value)
     {
       return string.Format("You entered: {0}", value);
@@ -28,6 +35,16 @@ namespace WcfService
         composite.StringValue += "Suffix";
       }
       return composite;
+    }
+
+    public Superhero GetSuperhero()
+    {
+      return _repository.GetSuperhero();
+    }
+
+    public Superhero[] GetSuperheroes()
+    {
+      return _repository.GetSuperheroes();
     }
   }
 }

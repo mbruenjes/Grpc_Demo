@@ -7,6 +7,63 @@
 
     <ItemGroup>
       <PackageReference Include="BenchmarkDotNet" Version="0.13.0" />
+      <PackageReference Include="Google.Protobuf" Version="3.13.0" />
+      <PackageReference Include="Grpc.Net.ClientFactory" Version="2.32.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.32.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.ApiDescription.Client" Version="3.0.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+      <PackageReference Include="NSwag.ApiDescription.Client" Version="13.0.5">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="System.ServiceModel.Http" Version="4.8.1" />
+      <PackageReference Include="System.ServiceModel.Primitives" Version="4.8.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="App.config" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <OpenApiReference Include="OpenAPIs\swagger2.json" CodeGenerator="NSwagCSharp" Namespace="SuperheroServiceRest" ClassName="SuperheroServiceRest">
+        <SourceUri>https://localhost:6001/swagger/v1/swagger.json</SourceUri>
+      </OpenApiReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Common\Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <WCFMetadata Include="Connected Services" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Protobuf Include="..\GrpcService\Protos\superhero.proto">
+        <GrpcServices>Client</GrpcServices>
+        <Access>Public</Access>
+        <ProtoCompile>True</ProtoCompile>
+        <CompileOutputs>True</CompileOutputs>
+        <OutputDir>obj\Debug\net5.0\</OutputDir>
+        <Generator>MSBuild:Compile</Generator>
+        <Link>Protos\superhero.proto</Link>
+      </Protobuf>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="System.ServiceModel" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="OpenAPIs\.json" ClassName="SuperheroServiceRest" />
+      <None Update="OpenAPIs\swagger.json" ClassName="SuperheroServiceRest" />
+      <None Update="OpenAPIs\swagger1.json" ClassName="SuperheroServiceRest" />
     </ItemGroup>
 
 </Project>

@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.Text;
+using Common;
 
 namespace WcfService
 {
@@ -20,6 +21,11 @@ namespace WcfService
     CompositeType GetDataUsingDataContract(CompositeType composite);
 
     // TODO: Add your service operations here
+    [OperationContract]
+    Superhero GetSuperhero();
+
+    [OperationContract]
+    Superhero[] GetSuperheroes();
   }
 
 

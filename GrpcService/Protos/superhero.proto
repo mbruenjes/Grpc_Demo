@@ -6,10 +6,11 @@ package superhero;
 
 service Superhero {
   rpc GetSuperhero (SuperheroRequest) returns (SuperheroResponse);
+  rpc GetSuperheros (SuperheroRequest) returns (AllSuperheroesResponse);
 }
 
 message SuperheroRequest {
-  optional int32 index = 1;
+  
 }
 
 message SuperheroResponse {
@@ -18,4 +19,8 @@ message SuperheroResponse {
   float height = 3;
   float weight = 4;
   string universe = 5;
+}
+
+message AllSuperheroesResponse {
+	repeated SuperheroResponse superheroes = 1;
 }
