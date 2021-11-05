@@ -1,28 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using GrpcService.Services;
-
-namespace GrpcService
+﻿namespace GrpcService
 {
+  using Microsoft.AspNetCore.Builder;
+  using Microsoft.AspNetCore.Hosting;
+  using Microsoft.AspNetCore.Http;
+  using Microsoft.Extensions.DependencyInjection;
+  using Microsoft.Extensions.Hosting;
+  using Services;
+
   public class Startup
   {
-    // This method gets called by the runtime. Use this method to add services to the container.
-    // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-    public void ConfigureServices(IServiceCollection services)
-    {
-      services.AddGrpc(options =>
-      {
-        
-      });
-    }
-
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
@@ -33,17 +19,28 @@ namespace GrpcService
 
       app.UseRouting();
 
-      app.UseEndpoints(endpoints =>
-      {
-        endpoints.MapGrpcService<SuperheroService>();
+      app.UseGrpcWeb();
 
-        endpoints.MapGet("/",
-                  async context =>
-                  {
-                await context.Response.WriteAsync(
-                          "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-              });
-      });
+      app.UseEndpoints(
+        endpoints =>
+        {
+          endpoints.MapGrpcService<SuperheroService>().EnableGrpcWeb();
+
+          endpoints.MapGet(
+            "/",
+            async context =>
+            {
+              await context.Response.WriteAsync(
+                "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+            });
+        });
+    }
+
+    // This method gets called by the runtime. Use this method to add services to the container.
+    // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+    public void ConfigureServices(IServiceCollection services)
+    {
+      services.AddGrpc(options => { });
     }
   }
 }

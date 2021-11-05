@@ -1,59 +1,61 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-using Grpc.Net.Client;
-using SuperheroServiceSoap;
-using Superhero = Common.Superhero;
-using Universe = Common.Universe;
-
-namespace Benchmark
+﻿namespace Benchmark
 {
+  using System;
+  using System.Linq;
+  using System.Net.Http;
+  using System.Threading.Tasks;
+  using BenchmarkDotNet.Attributes;
+  using BenchmarkDotNet.Running;
+  using Grpc.Net.Client;
+  using Grpc.Net.Client.Web;
+  using GrpcService;
+  using SuperheroServiceRest;
+  using SuperheroServiceSoap;
+  using Superhero = GrpcService.Superhero;
+  using Universe = Common.Universe;
+
   public class SuperheroBenchmark : IDisposable
   {
-    // SOAP
-    private readonly SuperheroServiceClient superheroServiceClient;
     private readonly GrpcChannel channel;
 
     // gRPC
-    private readonly GrpcService.Superhero.SuperheroClient grpcClient;
+    private readonly Superhero.SuperheroClient grpcClient;
+
+    // SOAP
+    private readonly SuperheroServiceClient superheroServiceClient;
 
     // REST
-    private readonly SuperheroServiceRest.SuperheroServiceRest superheroServiceRest;
+    private readonly SuperheroServiceRest superheroServiceRest;
 
     public SuperheroBenchmark()
     {
-      superheroServiceClient = new SuperheroServiceClient();
+      this.superheroServiceClient = new SuperheroServiceClient(SuperheroServiceClient.EndpointConfiguration.BasicHttpsBinding_ISuperheroService);
 
-      channel = GrpcChannel.ForAddress("https://localhost:5001");
-      grpcClient = new GrpcService.Superhero.SuperheroClient(channel);
+      var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+      this.channel = GrpcChannel.ForAddress(
+        "https://grpcservice20211105010651.azurewebsites.net",
+        new GrpcChannelOptions
+        {
+          HttpClient = new HttpClient(handler)
+        });
+      this.grpcClient = new Superhero.SuperheroClient(this.channel);
 
-      superheroServiceRest = new SuperheroServiceRest.SuperheroServiceRest("https://localhost:6001", new System.Net.Http.HttpClient());
+      this.superheroServiceRest = new SuperheroServiceRest(
+        "https://grpc-demo-restserviceapi.azure-api.net/",
+        new HttpClient());
+    }
+
+    public void Dispose()
+    {
+      this.channel.Dispose();
     }
 
     [Benchmark]
-    public async Task<Superhero> Soap()
+    public async Task<Common.Superhero> Grpc()
     {
-      var response = await superheroServiceClient.GetSuperheroAsync();
+      var response = await this.grpcClient.GetSuperheroAsync(new SuperheroRequest());
 
-      return new Superhero()
-      {
-        Alias = response.Alias,
-        Name = response.Name,
-        Height = response.Height,
-        Weight = response.Weight,
-        Universe = (Universe)response.Universe
-      };
-    }
-
-    [Benchmark]
-    public async Task<Superhero> Grpc()
-    {
-
-      var response = await grpcClient.GetSuperheroAsync(new GrpcService.SuperheroRequest());
-
-      return new Superhero()
+      return new Common.Superhero
       {
         Alias = response.Alias,
         Name = response.Name,
@@ -64,11 +66,11 @@ namespace Benchmark
     }
 
     [Benchmark]
-    public async Task<Superhero> Rest()
+    public async Task<Common.Superhero> Rest()
     {
-      var response = await superheroServiceRest.SuperheroAsync();
+      var response = await this.superheroServiceRest.SuperheroAsync();
 
-      return new Superhero()
+      return new Common.Superhero
       {
         Alias = response.Alias,
         Name = response.Name,
@@ -78,88 +80,109 @@ namespace Benchmark
       };
     }
 
-    public void Dispose()
+    [Benchmark]
+    public async Task<Common.Superhero> Soap()
     {
-      channel.Dispose();
+      var response = await this.superheroServiceClient.GetSuperheroAsync();
+
+      return new Common.Superhero
+      {
+        Alias = response.Alias,
+        Name = response.Name,
+        Height = response.Height,
+        Weight = response.Weight,
+        Universe = (Universe)response.Universe
+      };
     }
   }
 
   public class AllSuperheroesBenchmark : IDisposable
   {
-    // SOAP
-    private readonly SuperheroServiceClient superheroServiceClient;
     private readonly GrpcChannel channel;
 
     // gRPC
-    private readonly GrpcService.Superhero.SuperheroClient grpcClient;
+    private readonly Superhero.SuperheroClient grpcClient;
+
+    // SOAP
+    private readonly SuperheroServiceClient superheroServiceClient;
 
     // REST
-    private readonly SuperheroServiceRest.SuperheroServiceRest superheroServiceRest;
+    private readonly SuperheroServiceRest superheroServiceRest;
 
     public AllSuperheroesBenchmark()
     {
-      superheroServiceClient = new SuperheroServiceClient();
+      this.superheroServiceClient = new SuperheroServiceClient(SuperheroServiceClient.EndpointConfiguration.BasicHttpsBinding_ISuperheroService);
+      var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+      this.channel = GrpcChannel.ForAddress(
+        "https://grpcservice20211105010651.azurewebsites.net",
+        new GrpcChannelOptions
+        {
+          HttpClient = new HttpClient(handler)
+        });
+      this.grpcClient = new Superhero.SuperheroClient(this.channel);
 
-      channel = GrpcChannel.ForAddress("https://localhost:5001");
-      grpcClient = new GrpcService.Superhero.SuperheroClient(channel);
-
-      superheroServiceRest = new SuperheroServiceRest.SuperheroServiceRest("https://localhost:6001", new System.Net.Http.HttpClient());
-    }
-
-    [Benchmark]
-    public async Task<Superhero[]> Soap()
-    {
-      var response = await superheroServiceClient.GetSuperheroesAsync();
-
-      return response.Select(superhero => new Superhero()
-      {
-        Alias = superhero.Alias,
-        Name = superhero.Name,
-        Height = (float)superhero.Height,
-        Weight = (float)superhero.Weight,
-        Universe = (Universe)superhero.Universe
-      }).ToArray();
-    }
-
-    [Benchmark]
-    public async Task<Superhero[]> Grpc()
-    {
-
-      var response = await grpcClient.GetSuperherosAsync(new GrpcService.SuperheroRequest());
-
-      return response.Superheroes.Select(superhero => new Superhero()
-      {
-        Alias = superhero.Alias,
-        Name = superhero.Name,
-        Height = superhero.Height,
-        Weight = superhero.Weight,
-        Universe = Enum.Parse<Universe>(superhero.Universe)
-      }).ToArray();
-    }
-
-    [Benchmark]
-    public async Task<Superhero[]> Rest()
-    {
-      var response = await superheroServiceRest.AllAsync();
-
-      return response.Select(superhero => new Superhero()
-      {
-        Alias = superhero.Alias,
-        Name = superhero.Name,
-        Height = (float)superhero.Height,
-        Weight = (float)superhero.Weight,
-        Universe = (Universe)superhero.Universe
-      }).ToArray();
+      this.superheroServiceRest = new SuperheroServiceRest(
+        "https://grpc-demo-restserviceapi.azure-api.net/",
+        new HttpClient());
     }
 
     public void Dispose()
     {
-      channel.Dispose();
+      this.channel.Dispose();
+    }
+
+    [Benchmark]
+    public async Task<Common.Superhero[]> Grpc()
+    {
+      var response = await this.grpcClient.GetSuperherosAsync(new SuperheroRequest());
+
+      return response.Superheroes.Select(
+        superhero => new Common.Superhero
+        {
+          Alias = superhero.Alias,
+          Name = superhero.Name,
+          Height = superhero.Height,
+          Weight = superhero.Weight,
+          Universe = Enum.Parse<Universe>(superhero.Universe)
+        }).ToArray();
+    }
+
+    [Benchmark]
+    public async Task<Common.Superhero[]> Rest()
+    {
+      var response = await this.superheroServiceRest.AllAsync();
+
+      return response.Select(
+        superhero => new Common.Superhero
+        {
+          Alias = superhero.Alias,
+          Name = superhero.Name,
+          Height = (float)superhero.Height,
+          Weight = (float)superhero.Weight,
+          Universe = (Universe)superhero.Universe
+        }).ToArray();
+    }
+
+    [Benchmark]
+    public async Task<Common.Superhero[]> Soap()
+    {
+      var response = await this.superheroServiceClient.GetSuperheroesAsync();
+
+      return response.Select(
+        superhero => new Common.Superhero
+        {
+          Alias = superhero.Alias,
+          Name = superhero.Name,
+          Height = superhero.Height,
+          Weight = superhero.Weight,
+          Universe = (Universe)superhero.Universe
+        }).ToArray();
     }
   }
-  class Program
+
+  internal class Program
   {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
       var summary = BenchmarkRunner.Run(typeof(SuperheroBenchmark));
       var summaryAll = BenchmarkRunner.Run(typeof(AllSuperheroesBenchmark));

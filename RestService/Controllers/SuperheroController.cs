@@ -1,30 +1,30 @@
-﻿using Common;
-using Microsoft.AspNetCore.Mvc;
-
-namespace RestService.Controllers
+﻿namespace RestService.Controllers
 {
+  using Common;
+  using Microsoft.AspNetCore.Mvc;
+
   [ApiController]
   [Route("/superhero")]
   public class SuperheroController : Controller
   {
-    private SuperheroRepository _repository;
+    private readonly SuperheroRepository _repository;
 
     public SuperheroController()
     {
-      _repository = new SuperheroRepository();
+      this._repository = new SuperheroRepository();
+    }
+
+    [HttpGet("all")]
+    public ActionResult<Superhero[]> GetAllSuperheroes()
+    {
+      return this.Ok(this._repository.GetSuperheroes());
     }
 
     // GET
     [HttpGet]
     public ActionResult<Superhero> Index()
     {
-      return Ok(_repository.GetSuperhero());
-    }
-
-    [HttpGet("all")]
-    public ActionResult<Superhero[]> GetAllSuperheroes()
-    {
-      return Ok(_repository.GetSuperheroes());
+      return this.Ok(this._repository.GetSuperhero());
     }
   }
 }

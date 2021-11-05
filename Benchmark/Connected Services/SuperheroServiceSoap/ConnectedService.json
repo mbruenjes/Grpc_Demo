@@ -1,9 +1,12 @@
 ﻿{
   "ProviderId": "Microsoft.VisualStudio.ConnectedService.Wcf",
   "Version": "15.0.40203.910",
+  "GettingStartedDocument": {
+    "Uri": "https://go.microsoft.com/fwlink/?linkid=858517"
+  },
   "ExtendedData": {
     "inputs": [
-      "http://localhost:21197/SuperheroService.svc?singleWsdl"
+      "http://wcfservice20211105010651.azurewebsites.net/SuperheroService.svc?singleWsdl"
     ],
     "collectionTypes": [
       "System.Array",
